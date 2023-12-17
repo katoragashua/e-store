@@ -1,8 +1,4 @@
-const jwt = require("jsonwebtoken");
-
-const createJWT = async (payload) => {
-  return jwt.sign(payload, process.env.JWT_SECRET);
-};
+const { createJWT } = require("./jwt");
 
 const attachCookies = async (res, user, refreshToken) => {
   const accessTokenJWT = await createJWT(user);
@@ -25,7 +21,4 @@ const attachCookies = async (res, user, refreshToken) => {
   });
 };
 
-
-module.exports = {
-  attachCookies,
-};
+module.exports = attachCookies;

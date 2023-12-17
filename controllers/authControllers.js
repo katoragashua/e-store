@@ -2,7 +2,9 @@ const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
 const crypto = require("node:crypto");
 const User = require("../models/User");
+const Token = require("../models/Token");
 const bcrypt = require("bcryptjs");
+const utils = require("../utils/index");
 const {
   NotFoundError,
   BadRequestError,
@@ -14,7 +16,9 @@ const {
 const comparePasswords = async (password, userPassword) => {
   const correctPassword = await bcrypt.compare(password, userPassword);
   if (!correctPassword)
-    throw new UnauthenticatedError("Password is incorrect. Enter correct password.");
+    throw new UnauthenticatedError(
+      "Password is incorrect. Enter correct password."
+    );
   return correctPassword;
 };
 
@@ -42,15 +46,14 @@ const signUp = async (req, res) => {
     verificationToken,
   });
 
-  // const origin = "http://localhost:5000";
-  // await utilFuncs.sendVerificationEmail({
-  //   firstname: user.firstname,
-  //   email: user.email,
-  //   verificationToken: user.verificationToken,
-  //   origin: origin,
-  // });
+  const origin = "http://localhost:5000";
+  await utils.sendVerificationEmail({
+    username: user.username,
+    email: user.email,
+    verificationToken: user.verificationToken,
+    origin: origin,
+  });
 
-  // await User.deleteMany()
 
   res.status(StatusCodes.CREATED).json({
     user,
@@ -61,23 +64,63 @@ const signUp = async (req, res) => {
 
 const signIn = async (req, res) => {
   const { email, password } = req.body;
-  console.log(password)
+  console.log(password);
   if (!email || !password)
     throw new BadRequestError("Please enter email or username, and password.");
+  // Users can login with their username or email
   const user =
     (await User.findOne({ email })) ||
     (await User.findOne({ username: email }));
   if (!user) throw new NotFoundError("User not found. Proceed to signup");
   await comparePasswords(password, user.password);
-  console.log(user);
+
+  const userObj = utils.userObj(user);
+  console.log(userObj);
+
+  let refreshToken = "";
+  const existingToken = await Token.findOne({ user: user._id });
+  if (existingToken) {
+    const { isValid } = existingToken;
+    if (!isValid)
+      throw new UnauthorizedError(
+        "Not authorized. Please reach out to the admin. You have been blocked from this service."
+      );
+    refreshToken = existingToken.refreshToken;
+    await utils.attachCookies(res, userObj, refreshToken);
+    return res.status(StatusCodes.OK).json({
+      user,
+      token: existingToken,
+      msg: "User logged in successfully.",
+    });
+  }
+
+  refreshToken = crypto.randomBytes(40).toString("hex");
+  // Below is an object model for the TokenSchema. Note: isValid is default true.
+  const tokenObject = { refreshToken, user: user._id };
+  const token = await Token.create({ ...tokenObject });
+  await utils.attachCookies(res, userObj, refreshToken);
   res
     .status(StatusCodes.OK)
-    .json({ user, msg: "User logged in successfully." });
+    .json({ user, token, msg: "User logged in successfully." });
 };
 
 const signOut = async (req, res) => {};
 
-const verifyEmail = async (req, res) => {};
+const verifyEmail = async (req, res) => {
+  const { email, token } = req.body;
+  if (!email || !token)
+    throw new BadRequestError("No or invalid email and or token");
+  const user = await User.findOne({ email });
+  if (!user) throw new NotFoundError("User not found.");
+
+  if (user.verificationToken !== token)
+    throw new UnauthenticatedError("Verification failed.");
+  user.isVerified = true;
+  user.verificationToken = "";
+  user.verified = new Date(Date.now());
+  await user.save();
+  res.status(StatusCodes.OK).json({success: true, msg: "Verification successful.", user})
+};
 
 const forgotPassword = async (req, res) => {};
 

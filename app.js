@@ -5,6 +5,9 @@ const mongoose = require("mongoose");
 const connectDB = require("./utils/connectDB");
 const morgan = require("morgan");
 require("express-async-errors");
+const Token = require("./models/Token");
+const User = require("./models/User");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 config();
@@ -17,7 +20,8 @@ const notFound = require("./middlewares/notFound");
 const errorHandlerMiddleware = require("./middlewares/errorHandlerMiddleware");
 
 app.use(morgan("tiny"));
-app.use(express.json())
+app.use(express.json());
+app.use(cookieParser(process.env.JWT_SECRET));
 
 app.get("/", (req, res) => {
   res.send(`<h1>E-Store</h1>`);
@@ -33,7 +37,9 @@ const port = process.env.PORT || 5000;
 // Start function
 const start = async () => {
   try {
-    // await connectDB(process.env.MONGO_URI);
+    await connectDB(process.env.MONGO_URI);
+    // await Token.deleteMany()
+    // await User.deleteMany();
     app.listen(port, () => {
       console.log(`Server listening of port ${port}...`);
     });
