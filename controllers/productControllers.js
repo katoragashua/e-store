@@ -9,7 +9,18 @@ const imagekit = new ImageKit({
 });
 
 const createProduct = async (req, res) => {
-  const { name, price, description, images, category, company } = req.params;
+  const { name, price, description, productImages, category, company } = req.params;
+  const product = await Product.create({
+    name,
+    price,
+    description,
+    productImages,
+    category,
+    company,
+  });
+  res
+    .status(StatusCodes.CREATED)
+    .json({ msg: "Product created successfully.", product: {...req.body}});
 };
 
 const getProducts = async (req, res) => {};

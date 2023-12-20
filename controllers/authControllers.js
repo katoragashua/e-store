@@ -54,7 +54,6 @@ const signUp = async (req, res) => {
     origin: origin,
   });
 
-
   res.status(StatusCodes.CREATED).json({
     user,
     message:
@@ -72,6 +71,10 @@ const signIn = async (req, res) => {
     (await User.findOne({ email })) ||
     (await User.findOne({ username: email }));
   if (!user) throw new NotFoundError("User not found. Proceed to signup");
+  if (!user.isVerified)
+    throw new UnauthenticatedError(
+      "User not verified. Please verify your email."
+    );
   await comparePasswords(password, user.password);
 
   const userObj = utils.userObj(user);
@@ -104,8 +107,6 @@ const signIn = async (req, res) => {
     .json({ user, token, msg: "User logged in successfully." });
 };
 
-const signOut = async (req, res) => {};
-
 const verifyEmail = async (req, res) => {
   const { email, token } = req.body;
   if (!email || !token)
@@ -114,17 +115,80 @@ const verifyEmail = async (req, res) => {
   if (!user) throw new NotFoundError("User not found.");
 
   if (user.verificationToken !== token)
-    throw new UnauthenticatedError("Verification failed.");
+    throw new UnauthenticatedError("Verification failed. Incorrect verification token.");
   user.isVerified = true;
   user.verificationToken = "";
   user.verified = new Date(Date.now());
   await user.save();
-  res.status(StatusCodes.OK).json({success: true, msg: "Verification successful.", user})
+  res
+    .status(StatusCodes.OK)
+    .json({ success: true, msg: "Verification successful.", user });
 };
 
-const forgotPassword = async (req, res) => {};
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) throw new BadRequestError("Please your account email.");
 
-const resetPassword = async (req, res) => {};
+  const user = await User.findOne({ email });
+  if (user) {
+    const passwordToken = crypto.randomBytes(20).toString("hex");
+    const origin = "http://localhost:5000";
+    const oneHour = 1000 * 60 * 60;
+    const passwordTokenExpiration = new Date(Date.now() + oneHour);
+    await utils.sendResetEmail({
+      username: user.username,
+      email,
+      passwordToken,
+      origin,
+    });
+    user.passwordToken = utils.hash(passwordToken);
+    user.passwordTokenExpiration = passwordTokenExpiration;
+    await user.save();
+  }
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: "Success! A reset link has been sent to your email.", user });
+};
+
+const resetPassword = async (req, res) => {
+  const { token, email, password } = req.body;
+  if (!email || !password || !token)
+    throw new BadRequestError("Please enter email or password and token.");
+
+  const user = await User.findOne({ email });
+  if (!user) throw new NotFoundError("User not found.");
+  const currentTime = new Date();
+  if (
+    !(user.passwordToken === utils.hash(token)) ||
+    !(user.passwordTokenExpiration > currentTime)
+  )
+    throw new UnauthenticatedError("Invalid or expired token.");
+
+  user.password = password;
+  user.passwordToken = null;
+  user.passwordTokenExpiration = null;
+  await user.save();
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: "Success. Password changed successfully.", user });
+};
+
+const signOut = async (req, res) => {
+  console.log(req.user);
+  await Token.findOneAndDelete({ user: req.user.userId });
+
+  res.cookie("accessToken", "logout", {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  });
+  res.cookie("refreshToken", "logout", {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  });
+  res.status(StatusCodes.OK).json({ message: "user logged out!" });
+};
 
 module.exports = {
   signUp,

@@ -3,7 +3,8 @@ const attachCookies = require("./cookies");
 const { User, userObj } = require("./createUserObj");
 const sendVerificationEmail = require("./sendVerificationEmail");
 const sendResetEmail = require("./sendResetEmail");
-const checkPermissions = require("./checkPermissions")
+const checkPermissions = require("./checkPermissions");
+const hash = require("./hash");
 
 module.exports = {
   createJWT,
@@ -13,5 +14,6 @@ module.exports = {
   userObj,
   sendVerificationEmail,
   sendResetEmail,
-  checkPermissions
+  checkPermissions,
+  hash,
 };
