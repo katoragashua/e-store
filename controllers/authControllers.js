@@ -63,7 +63,6 @@ const signUp = async (req, res) => {
 
 const signIn = async (req, res) => {
   const { email, password } = req.body;
-  console.log(password);
   if (!email || !password)
     throw new BadRequestError("Please enter email or username, and password.");
   // Users can login with their username or email
@@ -75,6 +74,7 @@ const signIn = async (req, res) => {
     throw new UnauthenticatedError(
       "User not verified. Please verify your email."
     );
+  console.log(user.password);
   await comparePasswords(password, user.password);
 
   const userObj = utils.userObj(user);
@@ -115,7 +115,9 @@ const verifyEmail = async (req, res) => {
   if (!user) throw new NotFoundError("User not found.");
 
   if (user.verificationToken !== token)
-    throw new UnauthenticatedError("Verification failed. Incorrect verification token.");
+    throw new UnauthenticatedError(
+      "Verification failed. Incorrect verification token."
+    );
   user.isVerified = true;
   user.verificationToken = "";
   user.verified = new Date(Date.now());

@@ -22,6 +22,7 @@ const {
   uploadPhotos,
   uploadProfilePhoto,
 } = require("./controllers/photosController");
+const userRouter = require("./routes/userRoutes");
 
 // Middlewares
 const notFound = require("./middlewares/notFound");
@@ -39,8 +40,12 @@ app.get("/", (req, res) => {
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/upload-photos", upload.array("photos", 10), uploadPhotos);
-app.use("/api/v1/upload-profile-photo", upload.single("photo"), uploadProfilePhoto);
-
+app.use(
+  "/api/v1/upload-profile-photo",
+  upload.single("photo"),
+  uploadProfilePhoto
+);
+app.use("/api/v1/users", userRouter);
 app.use(notFound);
 app.use(errorHandlerMiddleware);
 

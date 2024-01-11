@@ -60,6 +60,7 @@ const UserSchema = new mongoose.Schema(
 
 // Using mongoose hooks, hash the password before saving
 UserSchema.pre("save", async function () {
+  console.log(this.modifiedPaths());
   // The if block is used to make sure the password in only hashed if it has changed
   if (!this.isModified("password")) {
     return;
@@ -68,5 +69,10 @@ UserSchema.pre("save", async function () {
   const hash = await bcrypt.hash(this.password, salt);
   this.password = hash;
 });
+
+UserSchema.methods.comparePassword = async function (password) {
+  const isMatch = await bcrypt.compare(password, this.password);
+  return isMatch;
+};
 
 module.exports = mongoose.model("User", UserSchema);

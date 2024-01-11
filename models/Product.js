@@ -50,6 +50,7 @@ const ProductSchema = new Schema(
     inventory: {
       type: Number,
       default: 0,
+      required: true
     },
     averageRating: {
       type: Number,
@@ -58,6 +59,7 @@ const ProductSchema = new Schema(
     user: {
       type: mongoose.Types.ObjectId,
       ref: "User",
+      required: [true, "Please provide user id."],
     },
   },
   { timestamps: true }
