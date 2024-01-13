@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const Review = require("../models/Review");
 const { StatusCodes } = require("http-status-codes");
 const ImageKit = require("imagekit");
 const {
@@ -54,7 +55,10 @@ const deleteProduct = async (req, res) => {
   const product = await Product.findOne({ _id: productId });
   if (!product)
     throw new NotFoundError(`Product with id ${productId} not found.`);
+  // const reviewCount = await Review.countDocuments({ product: productId });
   await product.deleteOne();
+  // Deleting all reviews associated with the deleted product.
+  await Review.deleteMany({ product: productId });
   res.status(StatusCodes.OK).json({ message: "Successfully deleted product." });
 };
 

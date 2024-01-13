@@ -27,7 +27,7 @@ const createReview = async (req, res) => {
   const review = await Review.create({ ...req.body, user });
   res
     .status(StatusCodes.CREATED)
-    .json({ msg: "Successfully review the product", review });
+    .json({ msg: "Successfully reviewed the product", review });
 };
 
 const getAllReviews = async (req, res) => {

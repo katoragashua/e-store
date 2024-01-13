@@ -1,6 +1,4 @@
-const { default: mongoose } = require("mongoose");
-const { mongo } = require("mongoose");
-const { Schema } = require("mongoose");
+const { Schema, default: mongoose } = require("mongoose");
 
 const ProductSchema = new Schema(
   {
@@ -14,7 +12,7 @@ const ProductSchema = new Schema(
     price: {
       type: Number,
       required: [true, "Please provide product price."],
-      default: 0
+      default: 0,
     },
     description: {
       type: String,
@@ -50,7 +48,7 @@ const ProductSchema = new Schema(
     inventory: {
       type: Number,
       default: 0,
-      required: true
+      required: true,
     },
     averageRating: {
       type: Number,
@@ -62,7 +60,7 @@ const ProductSchema = new Schema(
       required: [true, "Please provide user id."],
     },
   },
-  { timestamps: true, toJSON: {virtuals: true }, toJSON: {virtuals: true} },
+  { timestamps: true, toJSON: { virtuals: true }, toJSON: { virtuals: true } }
 );
 
 ProductSchema.virtual("reviews", {
@@ -71,7 +69,11 @@ ProductSchema.virtual("reviews", {
   foreignField: "product",
   justOne: false,
   // match: {rating: 5}
-})
+});
 
+// ProductSchema.pre("deleteOne", async function (next) {
+//   console.log(this.model("Review"));
+//   // console.log(this.model("Review").find({}));
+// });
 
-module.exports = mongoose.model('Product', ProductSchema )
+module.exports = mongoose.model("Product", ProductSchema);
