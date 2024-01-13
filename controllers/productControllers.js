@@ -1,6 +1,13 @@
 const Product = require("../models/Product");
 const { StatusCodes } = require("http-status-codes");
 const ImageKit = require("imagekit");
+const {
+  NotFoundError,
+  BadRequestError,
+  UnauthenticatedError,
+  UnauthorizedError,
+  UnsupportedMediaError,
+} = require("../errors/index");
 
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGE_KIT_PUBLIC_KEY,
@@ -9,38 +16,53 @@ const imagekit = new ImageKit({
 });
 
 const createProduct = async (req, res) => {
-  const { name, price, description, productImages, category, company } = req.params;
-  const product = await Product.create({
-    name,
-    price,
-    description,
-    productImages,
-    category,
-    company,
-  });
+  const { id: userId } = req.user;
+  // const { name, price, description, productImages, category, company } = req.params;
+  const product = await Product.create({ ...req.body, user: userId });
   res
     .status(StatusCodes.CREATED)
-    .json({ msg: "Product created successfully.", product: {...req.body}});
+    .json({ msg: "Product created successfully.", product });
 };
 
-const getProducts = async (req, res) => {};
+const getAllProducts = async (req, res) => {
+  const products = await Product.find({});
+  res
+    .status(StatusCodes.OK)
+    .json({ message: "Success", products, count: products.length });
+};
 
 const getProduct = async (req, res) => {
   const { id } = req.params;
-  const product = await Product.findOne({ _id: id });
+  const product = await Product.findOne({ _id: id }).populate("reviews");
   if (!product) throw new Error(`Product with id ${id} not found`);
   res.status(StatusCodes.OK).json({ message: "Success", product });
 };
 
-const updateProduct = async (req, res) => {};
+const updateProduct = async (req, res) => {
+  const { id: productId } = req.params;
+  const product = await Product.findOneAndUpdate({ _id: productId }, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  if (!product)
+    throw new NotFoundError(`Product with id ${productId} not found.`);
+  res.status(StatusCodes.OK).json({ message: "Success", product });
+};
 
-const deleteProduct = async (req, res) => {};
+const deleteProduct = async (req, res) => {
+  const { id: productId } = req.params;
+  const product = await Product.findOne({ _id: productId });
+  if (!product)
+    throw new NotFoundError(`Product with id ${productId} not found.`);
+  await product.deleteOne();
+  res.status(StatusCodes.OK).json({ message: "Successfully deleted product." });
+};
 
 const uploadProductImages = async (req, res) => {};
 
 module.exports = {
   createProduct,
-  getProducts,
+  getAllProducts,
   getProduct,
   updateProduct,
   deleteProduct,

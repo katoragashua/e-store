@@ -23,6 +23,7 @@ const {
   uploadProfilePhoto,
 } = require("./controllers/photosController");
 const userRouter = require("./routes/userRoutes");
+const reviewRouter = require("./routes/reviewRoutes");
 
 // Middlewares
 const notFound = require("./middlewares/notFound");
@@ -46,6 +47,8 @@ app.use(
   uploadProfilePhoto
 );
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/reviews", reviewRouter);
+
 app.use(notFound);
 app.use(errorHandlerMiddleware);
 

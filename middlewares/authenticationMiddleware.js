@@ -19,15 +19,11 @@ const authenticationMiddleware = async (req, res, next) => {
       req.user = payload;
       return next();
     }
-    const payload = await utils.verifyJWT(
-      refreshToken,
-      process.env.JWT_SECRET
-    );
+    const payload = await utils.verifyJWT(refreshToken, process.env.JWT_SECRET);
     const token = await Token.findOne({
       refreshToken: payload.refreshToken,
       user: payload.user.id,
     });
-    console.log(token);
     if (!token || !token?.isValid)
       throw new UnauthenticatedError("Authentication invalid.");
     req.user = payload.user;
@@ -39,10 +35,10 @@ const authenticationMiddleware = async (req, res, next) => {
 };
 
 const authorizePermissions = (...roles) => {
-    return (req, res, next) => {
-        if(roles.includes(req.user.role)) return next();
-        throw new UnauthorizedError("Not authorized to access this route.")
-    }
-}
+  return (req, res, next) => {
+    if (roles.includes(req.user.role)) return next();
+    throw new UnauthorizedError("Not authorized to access this route.");
+  };
+};
 
 module.exports = { authenticationMiddleware, authorizePermissions };

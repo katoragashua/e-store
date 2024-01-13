@@ -17,7 +17,7 @@ const router = Router();
 
 router.get("/get-users", getAllUsers);
 router.get("/get-user", getUser);
-router.get("/get-currentuser", getCurrentUser);
+router.get("/get-current-user", getCurrentUser);
 router.post("/update-password", authenticationMiddleware, updatePassword);
 router.post("/update-user", authenticationMiddleware, updateUser);
 

@@ -1,6 +1,6 @@
 const {
   createProduct,
-  getProducts,
+  getAllProducts,
   getProduct,
   updateProduct,
   deleteProduct,
@@ -14,10 +14,14 @@ const {
 const { Router } = require("express");
 const router = Router();
 
-router.post(
-  "/create-product",
-  authenticationMiddleware,
-  createProduct
-);
+router.post("/create-product", authenticationMiddleware, createProduct);
+
+router.get("/get-products", getAllProducts);
+
+router.get("/get-product/:id", getProduct);
+
+router.delete("/delete-product/:id", deleteProduct);
+
+router.patch("/update-product/:id", updateProduct);
 
 module.exports = router;
