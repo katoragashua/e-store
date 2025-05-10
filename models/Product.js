@@ -54,6 +54,10 @@ const ProductSchema = new Schema(
       type: Number,
       default: 0,
     },
+    numOfReviews: {
+      type: Number,
+      default: 0,
+    },
     user: {
       type: mongoose.Types.ObjectId,
       ref: "User",
@@ -71,9 +75,13 @@ ProductSchema.virtual("reviews", {
   // match: {rating: 5}
 });
 
-// ProductSchema.pre("deleteOne", async function (next) {
-//   console.log(this.model("Review"));
-//   // console.log(this.model("Review").find({}));
-// });
+ProductSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    await this.model("Review").deleteMany({ product: this._id });
+    // console.log(this.model("Review").find({}));
+  }
+);
 
 module.exports = mongoose.model("Product", ProductSchema);

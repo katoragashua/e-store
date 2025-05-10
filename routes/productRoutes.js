@@ -14,14 +14,29 @@ const {
 const { Router } = require("express");
 const router = Router();
 
-router.post("/create-product", authenticationMiddleware, createProduct);
+router.post(
+  "/create-product",
+  authenticationMiddleware,
+  authorizePermissions("admin"),
+  createProduct
+);
 
 router.get("/get-products", getAllProducts);
 
 router.get("/get-product/:id", getProduct);
 
-router.delete("/delete-product/:id", deleteProduct);
+router.delete(
+  "/delete-product/:id",
+  authenticationMiddleware,
+  authorizePermissions("admin"),
+  deleteProduct
+);
 
-router.patch("/update-product/:id", updateProduct);
+router.patch(
+  "/update-product/:id",
+  authenticationMiddleware,
+  authorizePermissions("admin"),
+  updateProduct
+);
 
 module.exports = router;

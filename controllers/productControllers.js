@@ -58,7 +58,7 @@ const deleteProduct = async (req, res) => {
   // const reviewCount = await Review.countDocuments({ product: productId });
   await product.deleteOne();
   // Deleting all reviews associated with the deleted product.
-  await Review.deleteMany({ product: productId });
+  // await Review.deleteMany({ product: productId });
   res.status(StatusCodes.OK).json({ message: "Successfully deleted product." });
 };
 

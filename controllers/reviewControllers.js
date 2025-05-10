@@ -71,6 +71,37 @@ const deleteReview = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Successfully delete the review" });
 };
 
+
+const reviewStats = async (req, res) => {
+  const { id: productId } = req.params;
+  let stats = await Review.aggregate([
+    { $match: { product: mongoose.Types.ObjectId(productId) } },
+    {
+      $group: {
+        _id: null,
+        averageRating: { $avg: "$rating" },
+        numberOfReviews: { $sum: 1 },
+      },
+    },
+  ]);
+
+  stats = stats.reduce((acc, cur) => {
+    const { averageRating, numberOfReviews } = cur
+    acc.averageRating = averageRating
+    acc.numOfReviews = numberOfReviews
+    return acc
+  },{
+    averageRating: 0,
+    numOfReviews: 0
+  })
+
+  // stats[0].averageRating = Math.round(stats[0].averageRating);
+  // stats[0].averageRating = stats[0].averageRating.toFixed(2);
+  res.status(StatusCodes.OK).json(stats);
+};
+
+
+
 module.exports = {
   createReview,
   getAllReviews,

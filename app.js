@@ -11,6 +11,7 @@ const cookieParser = require("cookie-parser");
 const fileUpload = require("express-fileupload");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
+const fs = require("node:fs/promises");
 
 const app = express();
 config();
@@ -24,6 +25,7 @@ const {
 } = require("./controllers/photosController");
 const userRouter = require("./routes/userRoutes");
 const reviewRouter = require("./routes/reviewRoutes");
+const orderRouter = require("./routes/orderRoutes");
 
 // Middlewares
 const notFound = require("./middlewares/notFound");
@@ -38,6 +40,11 @@ app.get("/", (req, res) => {
   res.send(`<h1>E-Store</h1>`);
 });
 
+app.get("/api/v1/download", async (req, res) => {
+  // const file = await fs.open("./public/downloads", "w")
+  // const write = await fs.createWriteStream("./public/downloads")
+})
+
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/upload-photos", upload.array("photos", 10), uploadPhotos);
@@ -48,6 +55,7 @@ app.use(
 );
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/reviews", reviewRouter);
+app.use("/api/v1/orders/", orderRouter);
 
 app.use(notFound);
 app.use(errorHandlerMiddleware);

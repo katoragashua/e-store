@@ -83,7 +83,7 @@ const updateUser = async (req, res) => {
   user.email = email;
   user.username = username;
   await user.save();
-  const token = await Token.find({ user: id });
+  const token = await Token.findOne({ user: id });
 
   const updatedUserObj = utils.userObj(user);
   await utils.attachCookies(res, updatedUserObj, token.refreshToken);
